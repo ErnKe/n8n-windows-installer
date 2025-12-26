@@ -6,6 +6,11 @@
 #Requires -Version 5.1
 
 # ============================================
+# UTILITY FONKSIYONLARI IMPORT
+# ============================================
+. "$PSScriptRoot\utils.ps1"
+
+# ============================================
 # GLOBAL DEGISKENLER
 # ============================================
 $script:ScriptStartTime = Get-Date
@@ -275,6 +280,89 @@ Write-Info "Proje dizini: $script:ProjectRoot"
 # SISTEM GEREKSINIMLERI KONTROLU (TASK 4)
 # ============================================
 
+function Test-InternetConnection {
+    <#
+    .SYNOPSIS
+    Internet baglantisini kontrol eder
+    #>
+    Write-Info "Internet baglantisi kontrol ediliyor..."
+
+    try {
+        # hub.docker.com'a ping at
+        $testResult = Test-Connection -ComputerName "hub.docker.com" -Count 2 -Quiet -ErrorAction SilentlyContinue
+        if ($testResult) {
+            Write-Success "Internet baglantisi mevcut"
+            return $true
+        }
+
+        # Yedek test: google.com
+        $testResult2 = Test-Connection -ComputerName "google.com" -Count 2 -Quiet -ErrorAction SilentlyContinue
+        if ($testResult2) {
+            Write-Success "Internet baglantisi mevcut"
+            return $true
+        }
+
+        # Baglanti yok
+        Show-ErrorBox -Title "Internet Baglantisi Yok" -Message @(
+            "Internet baglantisi tespit edilemedi!",
+            "Docker imajlarini indirmek icin internet gerekli.",
+            "Lutfen internet baglantinizi kontrol edin."
+        )
+        Write-ErrorLog "Internet baglantisi yok!"
+        return $false
+    } catch {
+        Write-ErrorLog "Internet kontrolu sirasinda hata: $_"
+        return $false
+    }
+}
+
+function Test-WSL2Installed {
+    <#
+    .SYNOPSIS
+    WSL2 kurulu mu kontrol eder
+    #>
+    Write-Info "WSL2 durumu kontrol ediliyor..."
+
+    try {
+        $wslStatus = wsl --status 2>&1
+
+        # WSL kurulu ve calisiyorsa
+        if ($LASTEXITCODE -eq 0 -and $wslStatus -notmatch "not found|bulunamadi") {
+            Write-Success "WSL2 kurulu ve calisir durumda"
+            return $true
+        }
+
+        # WSL kurulu degil
+        Show-WarningBox -Title "WSL2 Kurulu Degil" -Message @(
+            "Docker Desktop, WSL2 backend ile daha iyi calisir.",
+            "WSL2 kurulu degilse performans sorunlari yasayabilirsiniz."
+        )
+
+        $installWsl = Get-UserConfirmation -Message "WSL2'yi simdi kurmak ister misiniz?" -Title "WSL2 Kurulumu"
+
+        if ($installWsl) {
+            Write-Info "WSL2 kurulumu icin asagidaki adimlari izleyin:"
+            Write-Host ""
+            Write-Host "    Asagidaki komutu Administrator PowerShell'de calistirin:" -ForegroundColor Yellow
+            Write-Host "    wsl --install" -ForegroundColor Cyan
+            Write-Host ""
+            Write-Host "    Kurulum tamamlandiktan sonra bilgisayarinizi yeniden baslatin" -ForegroundColor Yellow
+            Write-Host "    ve bu scripti tekrar calistirin." -ForegroundColor Yellow
+            Write-Host ""
+            Pause-ForUser
+            return $false
+        }
+
+        # Kullanici WSL2 kurmak istemiyor, devam et (Docker Desktop Hyper-V ile de calisabilir)
+        Write-WarningLog "WSL2 kurulmadan devam ediliyor..."
+        return $true
+    } catch {
+        # WSL komutu bulunamadi veya hata olustu
+        Write-WarningLog "WSL2 kontrolu yapilamadi, devam ediliyor..."
+        return $true
+    }
+}
+
 function Test-WindowsVersion {
     <#
     .SYNOPSIS
@@ -300,6 +388,7 @@ function Test-DockerInstalled {
     <#
     .SYNOPSIS
     Docker Desktop kurulu mu kontrol eder
+    Kurulu degilse kullanici onayiyla otomatik kurulum yapar
     #>
     Write-Info "Docker kurulumu kontrol ediliyor..."
 
@@ -309,27 +398,85 @@ function Test-DockerInstalled {
             $dockerVersion = docker --version 2>&1
             Write-Success "Docker kurulu: $dockerVersion"
             return $true
+        }
+
+        # Docker kurulu degil - Kullaniciya sor
+        Show-WarningBox -Title "Docker Desktop Kurulu Degil" -Message @(
+            "Docker Desktop, n8n'i calistirmak icin gereklidir.",
+            "Indirme boyutu: ~500MB"
+        )
+
+        $installDocker = Get-UserConfirmation -Message "Docker Desktop'i indirip kurmak ister misiniz?" -Title "Docker Kurulumu"
+
+        if ($installDocker) {
+            # Indir ve kur
+            $installerUrl = "https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe"
+            $installerPath = "$env:TEMP\DockerDesktopInstaller.exe"
+
+            Write-Info "Docker Desktop indiriliyor... (Bu islem birkaç dakika surebilir)"
+            Write-Host ""
+
+            try {
+                # Ilerleme gostergesi ile indir
+                $ProgressPreference = 'Continue'
+                Invoke-WebRequest -Uri $installerUrl -OutFile $installerPath -UseBasicParsing
+                Write-Success "Indirme tamamlandi!"
+                Write-Host ""
+            } catch {
+                Show-ErrorBox -Title "Indirme Hatasi" -Message @(
+                    "Docker Desktop indirilemedi!",
+                    "Hata: $_",
+                    "",
+                    "Manuel indirme linki:",
+                    "https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe"
+                )
+                Write-ErrorLog "Docker Desktop indirme hatasi: $_"
+                return $false
+            }
+
+            Write-Info "Docker Desktop kuruluyor..."
+            Write-Host "    (Kurulum penceresi acilacak, lutfen bekleyin...)" -ForegroundColor Gray
+            Write-Host ""
+
+            try {
+                # Kurulum baslat
+                Start-Process -FilePath $installerPath -Wait
+
+                Show-SuccessBox -Title "Docker Desktop Kuruldu" -Message @(
+                    "Docker Desktop basariyla kuruldu!",
+                    "",
+                    "ONEMLI: Lutfen asagidaki adimlari izleyin:",
+                    "1. Bilgisayarinizi yeniden baslatin",
+                    "2. Docker Desktop'in acilmasini bekleyin",
+                    "3. Bu scripti tekrar calistirin"
+                )
+
+                Write-Host ""
+                Write-Host "    Script simdi sonlandirilacak." -ForegroundColor Yellow
+                Write-Host "    Yeniden baslatma sonrasi scripti tekrar calistirin." -ForegroundColor Yellow
+                Write-Host ""
+                Pause-ForUser
+                exit 0
+            } catch {
+                Show-ErrorBox -Title "Kurulum Hatasi" -Message @(
+                    "Docker Desktop kurulumu sirasinda hata olustu!",
+                    "Hata: $_",
+                    "",
+                    "Lutfen manuel olarak kurun:",
+                    "https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe"
+                )
+                Write-ErrorLog "Docker Desktop kurulum hatasi: $_"
+                return $false
+            }
         } else {
-            Write-Host ""
-            Write-Host "    ╔══════════════════════════════════════════════════════════════════════╗" -ForegroundColor Red
-            Write-Host "    ║                                                                      ║" -ForegroundColor Red
-            Write-Host "    ║              " -ForegroundColor Red -NoNewline
-            Write-Host "DOCKER DESKTOP KURULU DEGIL!" -ForegroundColor Yellow -NoNewline
-            Write-Host "                        ║" -ForegroundColor Red
-            Write-Host "    ║                                                                      ║" -ForegroundColor Red
-            Write-Host "    ╠══════════════════════════════════════════════════════════════════════╣" -ForegroundColor Red
-            Write-Host "    ║                                                                      ║" -ForegroundColor Red
-            Write-Host "    ║  Docker Desktop'i indirmek icin asagidaki linke tiklayin:           ║" -ForegroundColor Red
-            Write-Host "    ║                                                                      ║" -ForegroundColor Red
-            Write-Host "    ║  " -ForegroundColor Red -NoNewline
-            Write-Host "https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe" -ForegroundColor Cyan -NoNewline
-            Write-Host "  ║" -ForegroundColor Red
-            Write-Host "    ║                                                                      ║" -ForegroundColor Red
-            Write-Host "    ║  Kurulum tamamlandiktan sonra bu scripti tekrar calistirin.         ║" -ForegroundColor Red
-            Write-Host "    ║                                                                      ║" -ForegroundColor Red
-            Write-Host "    ╚══════════════════════════════════════════════════════════════════════╝" -ForegroundColor Red
-            Write-Host ""
-            Write-ErrorLog "Docker Desktop kurulu degil!"
+            # Kullanici kurulum istemedi
+            Show-ErrorBox -Title "Kurulum Iptal Edildi" -Message @(
+                "Docker Desktop olmadan n8n kurulamaz.",
+                "",
+                "Manuel kurulum icin asagidaki linki kullanin:",
+                "https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe"
+            )
+            Write-ErrorLog "Kullanici Docker kurulumunu reddetti."
             return $false
         }
     } catch {
@@ -491,6 +638,43 @@ function Test-RequiredPorts {
     return $allPassed
 }
 
+function Test-PreviousInstallation {
+    <#
+    .SYNOPSIS
+    Onceki n8n kurulumunu kontrol eder
+    #>
+    Write-Info "Onceki kurulum kontrol ediliyor..."
+
+    try {
+        # Docker calisiyorsa container kontrolu yap
+        $existingContainer = docker ps -a --filter "name=n8n" --format "{{.Names}}" 2>&1
+
+        if ($existingContainer -match "n8n") {
+            Show-WarningBox -Title "Mevcut Kurulum Bulundu" -Message @(
+                "Sistemde mevcut bir n8n kurulumu tespit edildi!",
+                "Yeni kurulum mevcut container'lari degistirecektir."
+            )
+
+            $overwrite = Get-UserConfirmation -Message "Mevcut kurulumun uzerine yazmak ister misiniz?" -Title "Kurulum Onayi"
+
+            if ($overwrite) {
+                Write-Info "Mevcut kurulum kaldirilacak ve yenisi kurulacak..."
+                return $true
+            } else {
+                Write-Info "Kurulum kullanici tarafindan iptal edildi."
+                return $false
+            }
+        }
+
+        Write-Success "Onceki kurulum bulunamadi, temiz kurulum yapilacak"
+        return $true
+    } catch {
+        # Docker calismiyorsa veya hata olustuysa devam et
+        Write-WarningLog "Onceki kurulum kontrolu yapilamadi, devam ediliyor..."
+        return $true
+    }
+}
+
 function Test-AllRequirements {
     <#
     .SYNOPSIS
@@ -510,9 +694,21 @@ function Test-AllRequirements {
     Write-Log "SISTEM GEREKSINIMLERI KONTROLU BASLADI"
     Write-Log "========================================"
 
+    # Internet baglantisi kontrolu (en basta)
+    if (-not (Test-InternetConnection)) {
+        Write-ErrorLog "Internet baglantisi yok. Kurulum durduruluyor."
+        return $false
+    }
+
     # Windows kontrolu
     if (-not (Test-WindowsVersion)) {
         Write-ErrorLog "Windows surumu uygun degil. Kurulum durduruluyor."
+        return $false
+    }
+
+    # WSL2 kontrolu (Docker kontrolunden once)
+    if (-not (Test-WSL2Installed)) {
+        Write-ErrorLog "WSL2 kurulumu gerekli. Kurulum durduruluyor."
         return $false
     }
 
@@ -543,6 +739,12 @@ function Test-AllRequirements {
     # Port kontrolleri (TASK 5)
     if (-not (Test-RequiredPorts)) {
         Write-ErrorLog "Gerekli portlar kullanimda. Kurulum durduruluyor."
+        return $false
+    }
+
+    # Onceki kurulum kontrolu (en sonda)
+    if (-not (Test-PreviousInstallation)) {
+        Write-ErrorLog "Kurulum kullanici tarafindan iptal edildi."
         return $false
     }
 
@@ -815,6 +1017,101 @@ function Invoke-Cleanup {
     Write-Log "Cleanup islemi tamamlandi"
 }
 
+# ============================================
+# GUVENLIK AYARLARI (TASK 6)
+# ============================================
+
+function Initialize-Security {
+    <#
+    .SYNOPSIS
+    Ilk kurulumda guvenlik ayarlarini yapilandirir
+    - Rastgele PostgreSQL sifresi olusturur
+    - Rastgele N8N encryption key olusturur
+    - config/.env dosyasina kaydeder
+    #>
+    Write-Info "Guvenlik ayarlari yapilandiriliyor..."
+    Write-Log "Initialize-Security basladi"
+
+    $configDir = Join-Path $script:ProjectRoot "config"
+    $envFile = Join-Path $configDir ".env"
+
+    # config klasoru olustur
+    if (-not (Test-Path $configDir)) {
+        New-Item -ItemType Directory -Path $configDir -Force | Out-Null
+        Write-Log "config klasoru olusturuldu: $configDir"
+    }
+
+    # Eger .env zaten varsa, kullaniciya sor
+    if (Test-Path $envFile) {
+        Show-WarningBox -Title "Mevcut Yapilandirma Bulundu" -Message @(
+            "config/.env dosyasi zaten mevcut!",
+            "Yeni sifreler olusturulursa mevcut sifreler silinir."
+        )
+
+        $overwrite = Get-UserConfirmation -Message "Yeni sifreler olusturmak ister misiniz?" -Title "Guvenlik Ayarlari"
+
+        if (-not $overwrite) {
+            Write-Success "Mevcut guvenlik ayarlari korunuyor"
+            Write-Log "Kullanici mevcut .env dosyasini korumak istedi"
+            return $true
+        }
+    }
+
+    # Rastgele sifreler olustur
+    Write-Info "Guclu sifreler olusturuluyor..."
+    $postgresPassword = New-RandomPassword -Length 16
+    $encryptionKey = New-EncryptionKey
+
+    # .env dosyasi icerigi
+    $envContent = @"
+# ============================================
+# n8n Self-Hosted Installer - Environment Variables
+# ============================================
+# Bu dosya otomatik olusturulmustur
+# Olusturulma Tarihi: $(Get-TurkeyTime | Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
+# Made by Eren Kekic
+# ============================================
+
+# PostgreSQL Ayarlari
+POSTGRES_USER=n8n
+POSTGRES_PASSWORD=$postgresPassword
+POSTGRES_DB=n8n
+
+# n8n Encryption Key (32 karakter hex)
+# Workflow credentials sifrelemesi icin kullanilir
+N8N_ENCRYPTION_KEY=$encryptionKey
+"@
+
+    # .env dosyasini yaz
+    try {
+        $envContent | Out-File -FilePath $envFile -Encoding UTF8 -Force
+        Write-Success ".env dosyasi olusturuldu: $envFile"
+        Write-Log ".env dosyasi basariyla olusturuldu"
+    } catch {
+        Write-ErrorLog ".env dosyasi olusturulamadi: $_"
+        return $false
+    }
+
+    # Kullaniciya sifreleri goster
+    Show-WarningBox -Title "ONEMLI: Sifreleri Kaydedin!" -Message @(
+        "Asagidaki sifreler SADECE BIR KEZ gosterilecektir!",
+        "Lutfen guvenli bir yere kaydedin.",
+        "",
+        "PostgreSQL Sifresi:",
+        "  $postgresPassword",
+        "",
+        "n8n Encryption Key:",
+        "  $encryptionKey",
+        "",
+        "Bu bilgiler config/.env dosyasina kaydedildi."
+    )
+
+    Pause-ForUser
+
+    Write-Log "Guvenlik ayarlari basariyla yapilandirildi"
+    return $true
+}
+
 function Install-N8n {
     <#
     .SYNOPSIS
@@ -833,6 +1130,12 @@ function Install-N8n {
     Write-Log "========================================="
     Write-Log "n8n KURULUM ISLEMI BASLADI"
     Write-Log "========================================="
+
+    # 0. Guvenlik ayarlarini yap (TASK 6)
+    if (-not (Initialize-Security)) {
+        Write-ErrorLog "Guvenlik ayarlari yapilandirilamadi. Kurulum durduruluyor."
+        return $false
+    }
 
     # 1. Docker Compose dosyasini kontrol et
     if (-not (Copy-DockerComposeFile)) {
@@ -864,6 +1167,66 @@ function Install-N8n {
 
     # 5. Basari mesajini goster
     Show-InstallationSuccess
+
+    # 6. Tarayici acma secenegi
+    $openBrowser = Get-UserConfirmation -Message "Tarayicida n8n'i acmak ister misiniz?" -Title "n8n'i Ac"
+    if ($openBrowser) {
+        Write-Info "Tarayici aciliyor..."
+        Start-Process "http://localhost:5678"
+        Write-Success "Tarayici acildi"
+    }
+
+    # 7. Masaustu kisayolu olusturma secenegi
+    $createShortcut = Get-UserConfirmation -Message "Masaustune baslatma kisayolu olusturulsun mu?" -Title "Masaustu Kisayolu"
+    if ($createShortcut) {
+        try {
+            $desktop = [Environment]::GetFolderPath("Desktop")
+            $shortcutPath = Join-Path $desktop "n8n Baslat.lnk"
+            $targetPath = Join-Path $script:ProjectRoot "start-n8n.bat"
+
+            $WshShell = New-Object -ComObject WScript.Shell
+            $Shortcut = $WshShell.CreateShortcut($shortcutPath)
+            $Shortcut.TargetPath = $targetPath
+            $Shortcut.WorkingDirectory = $script:ProjectRoot
+            $Shortcut.Description = "n8n Self-Hosted Installer - n8n'i Baslat"
+            $Shortcut.Save()
+
+            Write-Success "Masaustu kisayolu olusturuldu: n8n Baslat"
+            Write-Log "Masaustu kisayolu olusturuldu: $shortcutPath"
+        } catch {
+            Write-WarningLog "Masaustu kisayolu olusturulamadi: $_"
+        }
+    }
+
+    # 8. Kullanilabilir komutlar listesi
+    Write-Host ""
+    Write-Host "    ╔══════════════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
+    Write-Host "    ║                                                                      ║" -ForegroundColor Cyan
+    Write-Host "    ║                  " -ForegroundColor Cyan -NoNewline
+    Write-Host "KULLANILABILIR KOMUTLAR" -ForegroundColor White -NoNewline
+    Write-Host "                         ║" -ForegroundColor Cyan
+    Write-Host "    ║                                                                      ║" -ForegroundColor Cyan
+    Write-Host "    ╚══════════════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
+    Write-Host ""
+    Write-Host "    start-n8n.bat      " -ForegroundColor Yellow -NoNewline
+    Write-Host "- n8n'i baslat" -ForegroundColor White
+    Write-Host "    stop-n8n.bat       " -ForegroundColor Yellow -NoNewline
+    Write-Host "- n8n'i durdur" -ForegroundColor White
+    Write-Host "    restart-n8n.bat    " -ForegroundColor Yellow -NoNewline
+    Write-Host "- n8n'i yeniden baslat" -ForegroundColor White
+    Write-Host "    status-n8n.bat     " -ForegroundColor Yellow -NoNewline
+    Write-Host "- Durum kontrolu" -ForegroundColor White
+    Write-Host "    logs-n8n.bat       " -ForegroundColor Yellow -NoNewline
+    Write-Host "- Loglari goruntule" -ForegroundColor White
+    Write-Host "    backup-n8n.bat     " -ForegroundColor Yellow -NoNewline
+    Write-Host "- Yedek al" -ForegroundColor White
+    Write-Host "    update-n8n.bat     " -ForegroundColor Yellow -NoNewline
+    Write-Host "- Guncelle" -ForegroundColor White
+    Write-Host "    uninstall-n8n.bat  " -ForegroundColor Yellow -NoNewline
+    Write-Host "- n8n'i kaldir" -ForegroundColor White
+    Write-Host ""
+
+    Write-Log "Kullanilabilir komutlar listesi gosterildi"
 
     return $true
 }

@@ -1,47 +1,52 @@
-# n8n Self-Hosted Installer
+# n8n Self-Hosted Installer for Windows
 
-[![Windows](https://img.shields.io/badge/Platform-Windows%2010%2F11-blue?logo=windows)](https://www.microsoft.com/windows)
+[![Windows](https://img.shields.io/badge/Platform-Windows%2010%2F11-0078D6?logo=windows&logoColor=white)](https://www.microsoft.com/windows)
 [![Docker](https://img.shields.io/badge/Docker-Required-2496ED?logo=docker&logoColor=white)](https://www.docker.com/products/docker-desktop)
 [![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL%2016-336791?logo=postgresql&logoColor=white)](https://www.postgresql.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Version](https://img.shields.io/badge/Version-2.0-green.svg)](https://github.com/ErnKe/n8n-windows-installer)
+
+**Made by Eren Kekic**
 
 Windows kullanicilari icin tek tiklama ile Docker uzerinde PostgreSQL destekli n8n kurulumu.
 
-**One-click n8n installation on Windows with Docker and PostgreSQL support.**
-
 ---
 
-## Ozellikler / Features
+## Ozellikler
 
 - **Tek Tiklama Kurulum** - Sadece `install-n8n.bat` dosyasina cift tiklayin
+- **Otomatik Docker Desktop Kurulumu** - Docker yoksa otomatik indirir ve kurar
+- **WSL2 Kontrolu** - Windows Subsystem for Linux kontrolu
+- **Guclu Rastgele Sifre Olusturma** - PostgreSQL icin guvenli sifreler
 - **PostgreSQL Veritabani** - Guvenilir ve olceklenebilir veritabani
-- **Otomatik Docker Yonetimi** - Container'lar otomatik olusturulur ve baslatilir
-- **Detayli Loglama** - Tum islemler `logs/` klasorune kaydedilir
-- **Hata Yonetimi** - Akilli hata yakalama ve kullanici bilgilendirmesi
-- **Sistem Kontrolleri** - Docker, port, RAM ve disk alani kontrolleri
+- **Yonetim Araclari** - Baslat, durdur, yeniden baslat, durum, log goruntuleme
+- **Yedekleme ve Geri Yukleme** - Veritabani yedekleme destegi
+- **Guncelleme Destegi** - Kullanici onayli guncelleme mekanizmasi
+- **Guvenli Kaldirma** - Veri korumali kaldirma secenekleri
+- **Masaustu Kisayolu** - Otomatik masaustu kisayolu olusturma
 
 ---
 
-## Gereksinimler / Requirements
+## Gereksinimler
 
-| Gereksinim | Minimum |
-|------------|---------|
-| Isletim Sistemi | Windows 10 / 11 |
-| Docker Desktop | Kurulu ve calisiyor olmali |
-| RAM | 4 GB |
-| Disk Alani | 2 GB bos alan |
-| Port | 5678 (n8n) bos olmali |
+| Gereksinim | Minimum | Onerilen |
+|------------|---------|----------|
+| Isletim Sistemi | Windows 10 | Windows 11 |
+| RAM | 4 GB | 8 GB+ |
+| Disk Alani | 5 GB | 10 GB+ |
+| Internet | Gerekli | Gerekli |
+| Port | 5678 bos olmali | - |
 
-> **Not:** Docker Desktop'in kurulu ve calisir durumda oldugundan emin olun.
+> **Not:** Docker Desktop kurulu degilse, installer otomatik olarak indirir ve kurar.
 
 ---
 
-## Kurulum / Installation
+## Kurulum
 
 ### Adim 1: Dosyalari Indirin
 Bu repository'yi indirin veya klonlayin:
 ```bash
-git clone https://github.com/YOUR_USERNAME/n8n-self-hosted-installer.git
+git clone https://github.com/ErnKe/n8n-windows-installer.git
 ```
 
 ### Adim 2: Kurulumu Baslatin
@@ -50,86 +55,83 @@ git clone https://github.com/YOUR_USERNAME/n8n-self-hosted-installer.git
 ### Adim 3: UAC Onayi
 Windows sizden Administrator yetkisi isteyecek. **"Evet"** butonuna tiklayin.
 
-### Adim 4: Bekleyin
+### Adim 4: Talimatları Takip Edin
 Kurulum scripti:
 1. Sistem gereksinimlerini kontrol eder
-2. Docker imajlarini indirir
-3. PostgreSQL veritabanini baslatir
-4. n8n servisini baslatir
+2. Docker Desktop'i kurar (gerekirse)
+3. PostgreSQL ve n8n container'larini baslatir
+4. Guvenli sifreler olusturur
 
 ### Adim 5: Tamamlandi!
-Kurulum tamamlandiginda asagidaki mesaji goreceksiniz:
-```
-n8n basariyla kuruldu!
-Erisim adresi: http://localhost:5678
-```
-
----
-
-## Yapilandirma / Configuration
-
-### docker-compose.yml
-
-Yapilandirma dosyasi `docker/docker-compose.yml` konumundadir.
-
-#### Servisler
-
-| Servis | Aciklama | Port |
-|--------|----------|------|
-| n8n | Workflow otomasyon platformu | 5678 |
-| n8n-postgres | PostgreSQL veritabani | 5432 (internal) |
-
-#### Ortam Degiskenleri (Environment Variables)
-
-**n8n Servisi:**
-```yaml
-N8N_SECURE_COOKIE=false    # Localhost icin gerekli
-N8N_HOST=localhost
-N8N_PORT=5678
-N8N_PROTOCOL=http
-WEBHOOK_URL=http://localhost:5678/
-```
-
-**PostgreSQL Servisi:**
-```yaml
-POSTGRES_USER=n8n
-POSTGRES_PASSWORD=n8n_password
-POSTGRES_DB=n8n
-```
-
-> **Guvenlik Notu:** Production ortaminda `POSTGRES_PASSWORD` degerini degistirin!
-
----
-
-## Kullanim / Usage
-
-### n8n'e Erisim
-
-Tarayicinizi acin ve asagidaki adrese gidin:
-
+Kurulum tamamlandiginda tarayicinizda n8n acilacaktir:
 ```
 http://localhost:5678
 ```
 
-### Ilk Hesap Olusturma
+---
 
-1. n8n acildiginda "Set up owner account" ekrani karsiniza cikacak
-2. Email, ad-soyad ve sifre bilgilerinizi girin
-3. Hesabinizi olusturun ve workflow'lar yaratmaya baslayin!
+## Kullanilabilir Komutlar
 
-### Docker Container Durumu
+| Komut | Aciklama |
+|-------|----------|
+| `install-n8n.bat` | n8n kurulumunu baslat |
+| `start-n8n.bat` | n8n'i baslat |
+| `stop-n8n.bat` | n8n'i durdur |
+| `restart-n8n.bat` | n8n'i yeniden baslat |
+| `status-n8n.bat` | Container durumunu kontrol et |
+| `logs-n8n.bat` | Loglari goruntule (menu secenekleri ile) |
+| `backup-n8n.bat` | PostgreSQL veritabanini yedekle |
+| `update-n8n.bat` | n8n'i en son surume guncelle |
+| `uninstall-n8n.bat` | n8n'i kaldir (veri koruma secenekleri) |
 
-Container'larin durumunu kontrol etmek icin:
-```bash
-docker ps
+---
+
+## Proje Yapisi
+
+```
+ErenKekic_n8n/
+├── install-n8n.bat          # Ana kurulum baslatici
+├── start-n8n.bat            # n8n'i baslat
+├── stop-n8n.bat             # n8n'i durdur
+├── restart-n8n.bat          # n8n'i yeniden baslat
+├── status-n8n.bat           # Durum kontrolu
+├── logs-n8n.bat             # Log goruntuleme
+├── update-n8n.bat           # Guncelleme
+├── backup-n8n.bat           # Yedekleme
+├── uninstall-n8n.bat        # Kaldirma
+├── scripts/
+│   ├── setup.ps1            # Ana kurulum scripti
+│   └── utils.ps1            # Yardimci fonksiyonlar
+├── docker/
+│   └── docker-compose.yml   # Docker yapilandirmasi
+├── config/
+│   ├── .env                 # Ortam degiskenleri (olusturulur)
+│   └── .env.example         # Ornek ortam dosyasi
+├── logs/                    # Kurulum loglari
+├── backups/                 # Veritabani yedekleri
+├── README.md                # Bu dosya
+└── .gitignore               # Git ignore kurallari
 ```
 
 ---
 
-## Sorun Giderme / Troubleshooting
+## Guvenlik
+
+### Sifre Yonetimi
+- PostgreSQL sifreleri rastgele olusturulur (16 karakter, guclu)
+- N8N_ENCRYPTION_KEY otomatik olusturulur (32 karakter hex)
+- Tum sifreler `config/.env` dosyasinda saklanir
+
+### Onemli Notlar
+- `.env` dosyasi `.gitignore`'da tanimlidir, Git'e yuklenmez
+- Sifrelerinizi guvenli bir yerde yedekleyin
+- Production ortaminda ek guvenlik onlemleri alin
+
+---
+
+## Sorun Giderme
 
 ### Docker Calisiyor mu?
-
 **Hata:** `Docker is not running`
 
 **Cozum:**
@@ -138,7 +140,6 @@ docker ps
 3. Kurulumu tekrar baslatin
 
 ### Port Kullanimda
-
 **Hata:** `Port 5678 is already in use`
 
 **Cozum:**
@@ -146,13 +147,10 @@ docker ps
 # Hangi uygulama kullaniyor?
 netstat -ano | findstr :5678
 
-# Uygulamayi kapatin veya docker-compose.yml'de portu degistirin
+# Uygulamayi kapatin veya portu degistirin
 ```
 
 ### Container Baslamiyor
-
-**Hata:** Container'lar saglikli degil
-
 **Cozum:**
 ```bash
 # Container loglarini kontrol edin
@@ -164,63 +162,37 @@ docker compose -f docker/docker-compose.yml restart
 ```
 
 ### Log Dosyalari
-
-Kurulum loglari asagidaki konumda bulunur:
+Kurulum loglari:
 ```
-logs/setup_YYYYMMDD_HHMMSS.log
-```
-
----
-
-## Kaldirma / Uninstall
-
-### Servisleri Durdur
-
-```bash
-cd docker
-docker compose down
-```
-
-### Verileri de Sil (Isteğe Bagli)
-
-```bash
-# Volume'lari sil (TUM VERILER SILINIR!)
-docker compose down -v
-```
-
-### Imajlari Sil (Isteğe Bagli)
-
-```bash
-docker rmi n8nio/n8n:latest
-docker rmi postgres:16-alpine
+logs/install_YYYYMMDD_HHMMSS.log
 ```
 
 ---
 
-## Proje Yapisi / Project Structure
+## Kaldirma
 
-```
-ErenKekic_n8n/
-├── install-n8n.bat          # Kurulum baslatici (cift tiklayin!)
-├── scripts/
-│   └── setup.ps1            # PowerShell kurulum scripti
-├── docker/
-│   └── docker-compose.yml   # Docker yapilandirmasi
-├── logs/                    # Kurulum loglari
-├── README.md                # Bu dosya
-└── .gitignore               # Git ignore kurallari
+### Secenekler
+`uninstall-n8n.bat` dosyasini calistirin ve secim yapin:
+
+1. **Sadece Container'lari Kaldir** - Veriler korunur
+2. **Container + Volume'lari Kaldir** - TUM VERILER SILINIR!
+
+### Manuel Kaldirma
+```bash
+# Container'lari durdur
+docker compose -f docker/docker-compose.yml down
+
+# Verileri de sil (DIKKAT!)
+docker compose -f docker/docker-compose.yml down -v
 ```
 
 ---
 
-## Lisans / License
+## Lisans
 
-Bu proje MIT Lisansi altinda lisanslanmistir. Detaylar icin [LICENSE](LICENSE) dosyasina bakin.
-
-```
 MIT License
 
-Copyright (c) 2024
+Copyright (c) 2024 Eren Kekic
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -239,37 +211,18 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-```
 
 ---
 
-## Katkida Bulunma / Contributing
+## Yazar
 
-Katkalarinizi bekliyoruz!
+**Eren Kekic**
 
-### Issue Acma
-
-1. [Issues](../../issues) sayfasina gidin
-2. "New Issue" butonuna tiklayin
-3. Sorunu veya oneriyi detayli aciklayin
-
-### Pull Request
-
-1. Bu repository'yi fork edin
-2. Yeni bir branch olusturun (`git checkout -b feature/yeni-ozellik`)
-3. Degisikliklerinizi commit edin (`git commit -m 'Yeni ozellik eklendi'`)
-4. Branch'inizi push edin (`git push origin feature/yeni-ozellik`)
-5. Pull Request acin
+- GitHub: [ErnKe](https://github.com/ErnKe)
 
 ---
 
-## Yazar / Author
-
-Eren Kekic
-
----
-
-## Tesekkurler / Acknowledgments
+## Tesekkurler
 
 - [n8n](https://n8n.io/) - Workflow otomasyon platformu
 - [Docker](https://www.docker.com/) - Container platformu
