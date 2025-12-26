@@ -168,7 +168,7 @@ function Write-ErrorLog {
 function Show-Banner {
     <#
     .SYNOPSIS
-    Script baslangic banner'ini gosterir - ASCII Art ile
+    Script baslangic bannerini gosterir - ASCII Art ile
     #>
 
     # ASCII Art Banner
@@ -269,7 +269,7 @@ function Show-Summary {
 # 1. Logging sistemini baslat
 Initialize-Logging
 
-# 2. Banner'i goster
+# 2. Banneri goster
 Show-Banner
 
 # 3. Baslangic mesaji
@@ -288,7 +288,7 @@ function Test-InternetConnection {
     Write-Info "Internet baglantisi kontrol ediliyor..."
 
     try {
-        # hub.docker.com'a ping at
+        # hub.docker.com adresine ping at
         $testResult = Test-Connection -ComputerName "hub.docker.com" -Count 2 -Quiet -ErrorAction SilentlyContinue
         if ($testResult) {
             Write-Success "Internet baglantisi mevcut"
@@ -338,12 +338,12 @@ function Test-WSL2Installed {
             "WSL2 kurulu degilse performans sorunlari yasayabilirsiniz."
         )
 
-        $installWsl = Get-UserConfirmation -Message "WSL2'yi simdi kurmak ister misiniz?" -Title "WSL2 Kurulumu"
+        $installWsl = Get-UserConfirmation -Message "WSL2 simdi kurmak ister misiniz?" -Title "WSL2 Kurulumu"
 
         if ($installWsl) {
             Write-Info "WSL2 kurulumu icin asagidaki adimlari izleyin:"
             Write-Host ""
-            Write-Host "    Asagidaki komutu Administrator PowerShell'de calistirin:" -ForegroundColor Yellow
+            Write-Host "    Asagidaki komutu Administrator PowerShell ile calistirin:" -ForegroundColor Yellow
             Write-Host "    wsl --install" -ForegroundColor Cyan
             Write-Host ""
             Write-Host "    Kurulum tamamlandiktan sonra bilgisayarinizi yeniden baslatin" -ForegroundColor Yellow
@@ -402,11 +402,11 @@ function Test-DockerInstalled {
 
         # Docker kurulu degil - Kullaniciya sor
         Show-WarningBox -Title "Docker Desktop Kurulu Degil" -Message @(
-            "Docker Desktop, n8n'i calistirmak icin gereklidir.",
+            "Docker Desktop, n8n calistirmak icin gereklidir.",
             "Indirme boyutu: ~500MB"
         )
 
-        $installDocker = Get-UserConfirmation -Message "Docker Desktop'i indirip kurmak ister misiniz?" -Title "Docker Kurulumu"
+        $installDocker = Get-UserConfirmation -Message "Docker Desktop indirip kurmak ister misiniz?" -Title "Docker Kurulumu"
 
         if ($installDocker) {
             # Indir ve kur
@@ -447,7 +447,7 @@ function Test-DockerInstalled {
                     "",
                     "ONEMLI: Lutfen asagidaki adimlari izleyin:",
                     "1. Bilgisayarinizi yeniden baslatin",
-                    "2. Docker Desktop'in acilmasini bekleyin",
+                    "2. Docker Desktop acilmasini bekleyin",
                     "3. Bu scripti tekrar calistirin"
                 )
 
@@ -498,7 +498,7 @@ function Test-DockerRunning {
             Write-Success "Docker servisi calisiyor"
             return $true
         } else {
-            Write-ErrorLog "Docker servisi calismiyor! Docker Desktop'i baslatin."
+            Write-ErrorLog "Docker servisi calismiyor! Docker Desktop baslatin."
             return $false
         }
     } catch {
@@ -520,7 +520,7 @@ function Test-DockerCompose {
             Write-Success "Docker Compose mevcut: $composeVersion"
             return $true
         } else {
-            Write-ErrorLog "Docker Compose bulunamadi! Docker Desktop'u guncelleyin."
+            Write-ErrorLog "Docker Compose bulunamadi! Docker Desktop guncelleyin."
             return $false
         }
     } catch {
@@ -621,7 +621,7 @@ function Test-RequiredPorts {
     <#
     .SYNOPSIS
     n8n icin gerekli portu kontrol eder
-    Not: PostgreSQL 5432 portu Docker internal network'te calisir, host'un 5432 portuyla ilgisi yoktur
+    Not: PostgreSQL 5432 portu Docker internal networkte calisir, host 5432 portuyla ilgisi yoktur
     #>
     Write-Info "Gerekli portlar kontrol ediliyor..."
 
@@ -633,7 +633,7 @@ function Test-RequiredPorts {
     }
 
     # Not: PostgreSQL 5432 portu Docker internal network icinde kullanilir
-    # Host'un 5432 portunu kontrol etmeye gerek yok
+    # Host 5432 portunu kontrol etmeye gerek yok
 
     return $allPassed
 }
@@ -652,7 +652,7 @@ function Test-PreviousInstallation {
         if ($existingContainer -match "n8n") {
             Show-WarningBox -Title "Mevcut Kurulum Bulundu" -Message @(
                 "Sistemde mevcut bir n8n kurulumu tespit edildi!",
-                "Yeni kurulum mevcut container'lari degistirecektir."
+                "Yeni kurulum mevcut containerlari degistirecektir."
             )
 
             $overwrite = Get-UserConfirmation -Message "Mevcut kurulumun uzerine yazmak ister misiniz?" -Title "Kurulum Onayi"
@@ -840,9 +840,9 @@ function Start-N8nInstallation {
 function Wait-ForN8nReady {
     <#
     .SYNOPSIS
-    n8n'in hazir olmasini bekler (max 60 saniye)
+    n8n hazir olmasini bekler (max 60 saniye)
     #>
-    Write-Info "n8n'in hazir olmasini bekleniyor..."
+    Write-Info "n8n hazir olmasini bekleniyor..."
 
     $maxWait = 60
     $interval = 5
@@ -873,7 +873,7 @@ function Wait-ForN8nReady {
 function Test-ContainersRunning {
     <#
     .SYNOPSIS
-    Container'larin calisip calismadigini kontrol eder
+    Containerlarin calisip calismadigini kontrol eder
     #>
     Write-Info "Container durumlari kontrol ediliyor..."
 
@@ -921,7 +921,7 @@ function Show-InstallationSuccess {
     Write-Host "  Ilk kullanim icin:" -ForegroundColor Yellow
     Write-Host "  1. Tarayicinizda http://localhost:5678 adresini acin" -ForegroundColor White
     Write-Host "  2. Yeni bir hesap olusturun" -ForegroundColor White
-    Write-Host "  3. Workflow'larinizi olusturmaya baslayin!" -ForegroundColor White
+    Write-Host "  3. Workflowlarinizi olusturmaya baslayin!" -ForegroundColor White
     Write-Host ""
     Write-Host "========================================" -ForegroundColor Green
 
@@ -936,9 +936,9 @@ function Show-InstallationSuccess {
 function Stop-N8nContainers {
     <#
     .SYNOPSIS
-    Container'lari durdurur ve temizlik yapar
+    Containerlari durdurur ve temizlik yapar
     #>
-    Write-Info "Container'lar durduruluyor..."
+    Write-Info "Containerlar durduruluyor..."
     Write-Log "docker compose down baslatiliyor"
 
     $dockerDir = Join-Path $script:ProjectRoot "docker"
@@ -948,11 +948,11 @@ function Stop-N8nContainers {
         if (Test-Path $composeFile) {
             $downResult = docker compose -f "$composeFile" down 2>&1
             if ($LASTEXITCODE -eq 0) {
-                Write-Success "Container'lar durduruldu"
+                Write-Success "Containerlar durduruldu"
                 Write-Log "docker compose down basarili"
                 return $true
             } else {
-                Write-WarningLog "Container'lar durdurulurken uyari: $downResult"
+                Write-WarningLog "Containerlar durdurulurken uyari: $downResult"
                 return $false
             }
         } else {
@@ -960,7 +960,7 @@ function Stop-N8nContainers {
             return $true
         }
     } catch {
-        Write-ErrorLog "Container'lar durdurulurken hata: $_"
+        Write-ErrorLog "Containerlar durdurulurken hata: $_"
         return $false
     }
 }
@@ -987,7 +987,7 @@ function Show-TroubleshootingHelp {
     Write-Host ""
     Write-Host "  3. Internet baglantisi sorunu olabilir" -ForegroundColor Cyan
     Write-Host "     -> Internet baglantinizi kontrol edin" -ForegroundColor Gray
-    Write-Host "     -> Docker Hub'a erisimi test edin" -ForegroundColor Gray
+    Write-Host "     -> Docker Hub erisimi test edin" -ForegroundColor Gray
     Write-Host ""
     Write-Host "  4. Docker kaynaklari yetersiz olabilir" -ForegroundColor Cyan
     Write-Host "     -> Docker Desktop ayarlarindan RAM/CPU artirin" -ForegroundColor Gray
@@ -1011,7 +1011,7 @@ function Invoke-Cleanup {
     Write-Info "Temizlik islemi baslatiliyor..."
     Write-Log "Cleanup islemi basladi"
 
-    # Container'lari durdur
+    # Containerlari durdur
     Stop-N8nContainers
 
     Write-Log "Cleanup islemi tamamlandi"
@@ -1152,12 +1152,12 @@ function Install-N8n {
         return $false
     }
 
-    # 3. n8n'in hazir olmasini bekle
+    # 3. n8n hazir olmasini bekle
     if (-not (Wait-ForN8nReady)) {
         Write-WarningLog "n8n henuz tam hazir olmayabilir, ancak devam ediliyor..."
     }
 
-    # 4. Container'larin calistigini dogrula
+    # 4. Containerlarin calistigini dogrula
     if (-not (Test-ContainersRunning)) {
         Write-ErrorLog "Containerlar duzgun calismiyor. Lutfen loglari kontrol edin."
         Invoke-Cleanup
@@ -1169,7 +1169,7 @@ function Install-N8n {
     Show-InstallationSuccess
 
     # 6. Tarayici acma secenegi
-    $openBrowser = Get-UserConfirmation -Message "Tarayicida n8n'i acmak ister misiniz?" -Title "n8n'i Ac"
+    $openBrowser = Get-UserConfirmation -Message "Tarayicida n8n acmak ister misiniz?" -Title "n8n Ac"
     if ($openBrowser) {
         Write-Info "Tarayici aciliyor..."
         Start-Process "http://localhost:5678"
@@ -1188,7 +1188,7 @@ function Install-N8n {
             $Shortcut = $WshShell.CreateShortcut($shortcutPath)
             $Shortcut.TargetPath = $targetPath
             $Shortcut.WorkingDirectory = $script:ProjectRoot
-            $Shortcut.Description = "n8n Self-Hosted Installer - n8n'i Baslat"
+            $Shortcut.Description = "n8n Self-Hosted Installer - n8n Baslat"
             $Shortcut.Save()
 
             Write-Success "Masaustu kisayolu olusturuldu: n8n Baslat"
@@ -1209,11 +1209,11 @@ function Install-N8n {
     Write-Host "    ╚══════════════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
     Write-Host ""
     Write-Host "    start-n8n.bat      " -ForegroundColor Yellow -NoNewline
-    Write-Host "- n8n'i baslat" -ForegroundColor White
+    Write-Host "- n8n baslat" -ForegroundColor White
     Write-Host "    stop-n8n.bat       " -ForegroundColor Yellow -NoNewline
-    Write-Host "- n8n'i durdur" -ForegroundColor White
+    Write-Host "- n8n durdur" -ForegroundColor White
     Write-Host "    restart-n8n.bat    " -ForegroundColor Yellow -NoNewline
-    Write-Host "- n8n'i yeniden baslat" -ForegroundColor White
+    Write-Host "- n8n yeniden baslat" -ForegroundColor White
     Write-Host "    status-n8n.bat     " -ForegroundColor Yellow -NoNewline
     Write-Host "- Durum kontrolu" -ForegroundColor White
     Write-Host "    logs-n8n.bat       " -ForegroundColor Yellow -NoNewline
@@ -1223,7 +1223,7 @@ function Install-N8n {
     Write-Host "    update-n8n.bat     " -ForegroundColor Yellow -NoNewline
     Write-Host "- Guncelle" -ForegroundColor White
     Write-Host "    uninstall-n8n.bat  " -ForegroundColor Yellow -NoNewline
-    Write-Host "- n8n'i kaldir" -ForegroundColor White
+    Write-Host "- n8n kaldir" -ForegroundColor White
     Write-Host ""
 
     Write-Log "Kullanilabilir komutlar listesi gosterildi"

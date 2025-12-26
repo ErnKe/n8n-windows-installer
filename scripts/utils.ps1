@@ -274,7 +274,7 @@ function Get-UserChoice {
     .PARAMETER Options
     Secenekler dizisi
     .RETURNS
-    Secilen seçenegin numarasi (1'den baslar)
+    Secilen secenegin numarasi (1den baslar)
     #>
     param(
         [Parameter(Mandatory=$true)]
