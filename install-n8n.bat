@@ -4,21 +4,22 @@
 :: ============================================
 :: Bu dosya setup.ps1 scriptini calistirir
 :: Cift tiklayin ve kurulumu baslatin!
+:: Made by Eren Kekic
 :: ============================================
+
+:: Ekrani temizle
+cls
+
+:: Pencere basligini ayarla
+title n8n Self-Hosted Installer - by Eren Kekic
 
 :: Karakter kodlamasi (UTF-8)
 chcp 65001 >nul
 
-:: Baslik goster
-echo.
-echo ============================================
-echo    n8n Self-Hosted Kurulum Baslatiliyor
-echo ============================================
-echo.
-
 :: Administrator yetkisi kontrolu
 NET SESSION >nul 2>&1
 if %errorlevel% neq 0 (
+    echo.
     echo [!] Administrator yetkisi gerekiyor...
     echo [!] UAC prompt aciliyor...
     echo.
@@ -27,6 +28,7 @@ if %errorlevel% neq 0 (
     exit /b
 )
 
+echo.
 echo [OK] Administrator yetkisi mevcut
 echo.
 

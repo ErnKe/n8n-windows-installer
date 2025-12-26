@@ -163,22 +163,50 @@ function Write-ErrorLog {
 function Show-Banner {
     <#
     .SYNOPSIS
-    Script baslangic banner'ini gosterir
+    Script baslangic banner'ini gosterir - ASCII Art ile
     #>
-    $banner = @"
 
-========================================
-    n8n Self-Hosted Installer
-    Windows Docker Kurulum Scripti
-========================================
+    # ASCII Art Banner
+    $asciiArt = @"
 
-    PostgreSQL + n8n Docker Kurulumu
-    Localhost: http://localhost:5678
-
-========================================
+    ███████╗██████╗ ███████╗███╗   ██╗    ██╗  ██╗███████╗██╗  ██╗██╗ ██████╗
+    ██╔════╝██╔══██╗██╔════╝████╗  ██║    ██║ ██╔╝██╔════╝██║ ██╔╝██║██╔════╝
+    █████╗  ██████╔╝█████╗  ██╔██╗ ██║    █████╔╝ █████╗  █████╔╝ ██║██║
+    ██╔══╝  ██╔══██╗██╔══╝  ██║╚██╗██║    ██╔═██╗ ██╔══╝  ██╔═██╗ ██║██║
+    ███████╗██║  ██║███████╗██║ ╚████║    ██║  ██╗███████╗██║  ██╗██║╚██████╗
+    ╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═══╝    ╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝╚═╝ ╚═════╝
 
 "@
-    Write-Host $banner -ForegroundColor Cyan
+
+    Write-Host ""
+    Write-Host $asciiArt -ForegroundColor Cyan
+
+    # Alt bilgi kutusu
+    Write-Host "    ╔══════════════════════════════════════════════════════════════════════╗" -ForegroundColor Magenta
+    Write-Host "    ║                                                                      ║" -ForegroundColor Magenta
+    Write-Host "    ║              " -ForegroundColor Magenta -NoNewline
+    Write-Host "n8n Self-Hosted Installer" -ForegroundColor White -NoNewline
+    Write-Host "                               ║" -ForegroundColor Magenta
+    Write-Host "    ║              " -ForegroundColor Magenta -NoNewline
+    Write-Host "Windows Docker Kurulum Scripti" -ForegroundColor Gray -NoNewline
+    Write-Host "                          ║" -ForegroundColor Magenta
+    Write-Host "    ║                                                                      ║" -ForegroundColor Magenta
+    Write-Host "    ║                      " -ForegroundColor Magenta -NoNewline
+    Write-Host "Made by Eren Kekic" -ForegroundColor Yellow -NoNewline
+    Write-Host "                              ║" -ForegroundColor Magenta
+    Write-Host "    ║                                                                      ║" -ForegroundColor Magenta
+    Write-Host "    ╠══════════════════════════════════════════════════════════════════════╣" -ForegroundColor Magenta
+    Write-Host "    ║                                                                      ║" -ForegroundColor Magenta
+    Write-Host "    ║    " -ForegroundColor Magenta -NoNewline
+    Write-Host "PostgreSQL + n8n Docker Kurulumu" -ForegroundColor Cyan -NoNewline
+    Write-Host "                               ║" -ForegroundColor Magenta
+    Write-Host "    ║    " -ForegroundColor Magenta -NoNewline
+    Write-Host "URL: http://localhost:5678" -ForegroundColor Green -NoNewline
+    Write-Host "                                      ║" -ForegroundColor Magenta
+    Write-Host "    ║                                                                      ║" -ForegroundColor Magenta
+    Write-Host "    ╚══════════════════════════════════════════════════════════════════════╝" -ForegroundColor Magenta
+    Write-Host ""
+
     Write-Log "Script baslatildi"
 }
 
@@ -192,9 +220,13 @@ function Show-Summary {
     $durationFormatted = "{0:mm}:{0:ss}" -f $duration
 
     Write-Host ""
-    Write-Host "========================================" -ForegroundColor White
-    Write-Host "           KURULUM OZETI" -ForegroundColor White
-    Write-Host "========================================" -ForegroundColor White
+    Write-Host "    ╔══════════════════════════════════════════════════════════════════════╗" -ForegroundColor White
+    Write-Host "    ║                                                                      ║" -ForegroundColor White
+    Write-Host "    ║                          " -ForegroundColor White -NoNewline
+    Write-Host "KURULUM OZETI" -ForegroundColor Cyan -NoNewline
+    Write-Host "                             ║" -ForegroundColor White
+    Write-Host "    ║                                                                      ║" -ForegroundColor White
+    Write-Host "    ╚══════════════════════════════════════════════════════════════════════╝" -ForegroundColor White
     Write-Host ""
 
     # Basari sayisi
@@ -213,10 +245,9 @@ function Show-Summary {
     }
 
     Write-Host ""
-    Write-Host "  Toplam sure: $durationFormatted" -ForegroundColor White
-    Write-Host "  Log dosyasi: $($script:LogFile)" -ForegroundColor Gray
+    Write-Host "    Toplam sure: $durationFormatted" -ForegroundColor White
+    Write-Host "    Log dosyasi: $($script:LogFile)" -ForegroundColor Gray
     Write-Host ""
-    Write-Host "========================================" -ForegroundColor White
 
     # Log dosyasina ozet yaz
     Write-Log "========================================"
@@ -279,7 +310,26 @@ function Test-DockerInstalled {
             Write-Success "Docker kurulu: $dockerVersion"
             return $true
         } else {
-            Write-ErrorLog "Docker bulunamadi! Docker Desktop kurun: https://docs.docker.com/desktop/install/windows-install/"
+            Write-Host ""
+            Write-Host "    ╔══════════════════════════════════════════════════════════════════════╗" -ForegroundColor Red
+            Write-Host "    ║                                                                      ║" -ForegroundColor Red
+            Write-Host "    ║              " -ForegroundColor Red -NoNewline
+            Write-Host "DOCKER DESKTOP KURULU DEGIL!" -ForegroundColor Yellow -NoNewline
+            Write-Host "                        ║" -ForegroundColor Red
+            Write-Host "    ║                                                                      ║" -ForegroundColor Red
+            Write-Host "    ╠══════════════════════════════════════════════════════════════════════╣" -ForegroundColor Red
+            Write-Host "    ║                                                                      ║" -ForegroundColor Red
+            Write-Host "    ║  Docker Desktop'i indirmek icin asagidaki linke tiklayin:           ║" -ForegroundColor Red
+            Write-Host "    ║                                                                      ║" -ForegroundColor Red
+            Write-Host "    ║  " -ForegroundColor Red -NoNewline
+            Write-Host "https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe" -ForegroundColor Cyan -NoNewline
+            Write-Host "  ║" -ForegroundColor Red
+            Write-Host "    ║                                                                      ║" -ForegroundColor Red
+            Write-Host "    ║  Kurulum tamamlandiktan sonra bu scripti tekrar calistirin.         ║" -ForegroundColor Red
+            Write-Host "    ║                                                                      ║" -ForegroundColor Red
+            Write-Host "    ╚══════════════════════════════════════════════════════════════════════╝" -ForegroundColor Red
+            Write-Host ""
+            Write-ErrorLog "Docker Desktop kurulu degil!"
             return $false
         }
     } catch {
@@ -423,7 +473,8 @@ function Test-PortAvailable {
 function Test-RequiredPorts {
     <#
     .SYNOPSIS
-    n8n ve PostgreSQL icin gerekli portlari kontrol eder
+    n8n icin gerekli portu kontrol eder
+    Not: PostgreSQL 5432 portu Docker internal network'te calisir, host'un 5432 portuyla ilgisi yoktur
     #>
     Write-Info "Gerekli portlar kontrol ediliyor..."
 
@@ -434,10 +485,8 @@ function Test-RequiredPorts {
         $allPassed = $false
     }
 
-    # PostgreSQL portu (5432) - Docker internal ama yine de kontrol
-    if (-not (Test-PortAvailable -Port 5432)) {
-        $allPassed = $false
-    }
+    # Not: PostgreSQL 5432 portu Docker internal network icinde kullanilir
+    # Host'un 5432 portunu kontrol etmeye gerek yok
 
     return $allPassed
 }
@@ -448,9 +497,13 @@ function Test-AllRequirements {
     Tum sistem gereksinimlerini sirayla kontrol eder
     #>
     Write-Host ""
-    Write-Host "========================================" -ForegroundColor Cyan
-    Write-Host "    SISTEM GEREKSINIMLERI KONTROLU" -ForegroundColor Cyan
-    Write-Host "========================================" -ForegroundColor Cyan
+    Write-Host "    ╔══════════════════════════════════════════════════════════════════════╗" -ForegroundColor Cyan
+    Write-Host "    ║                                                                      ║" -ForegroundColor Cyan
+    Write-Host "    ║                  " -ForegroundColor Cyan -NoNewline
+    Write-Host "SISTEM GEREKSINIMLERI KONTROLU" -ForegroundColor White -NoNewline
+    Write-Host "                      ║" -ForegroundColor Cyan
+    Write-Host "    ║                                                                      ║" -ForegroundColor Cyan
+    Write-Host "    ╚══════════════════════════════════════════════════════════════════════╝" -ForegroundColor Cyan
     Write-Host ""
 
     Write-Log "========================================"
@@ -768,9 +821,13 @@ function Install-N8n {
     Ana kurulum fonksiyonu - tum adimlari sirayla calistirir
     #>
     Write-Host ""
-    Write-Host "========================================" -ForegroundColor Cyan
-    Write-Host "        n8n KURULUM ISLEMI" -ForegroundColor Cyan
-    Write-Host "========================================" -ForegroundColor Cyan
+    Write-Host "    ╔══════════════════════════════════════════════════════════════════════╗" -ForegroundColor Green
+    Write-Host "    ║                                                                      ║" -ForegroundColor Green
+    Write-Host "    ║                       " -ForegroundColor Green -NoNewline
+    Write-Host "n8n KURULUM ISLEMI" -ForegroundColor White -NoNewline
+    Write-Host "                             ║" -ForegroundColor Green
+    Write-Host "    ║                                                                      ║" -ForegroundColor Green
+    Write-Host "    ╚══════════════════════════════════════════════════════════════════════╝" -ForegroundColor Green
     Write-Host ""
 
     Write-Log "========================================="
